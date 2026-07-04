@@ -209,8 +209,8 @@ function renderProfile() {
 }
 
 function routeStatusIcon(route) {
-  if (route.completed) return "icon-complete";
-  return route.type === "gift" ? "icon-box" : "icon-open";
+  if (route.completed) return "icon-open";
+  return "icon-box";
 }
 
 function renderRouteActions(route) {
@@ -267,6 +267,9 @@ function renderRoutes() {
 
   const canShowMore = !isSearching && !state.showAllRoutes && filtered.length > CONFIG.ROUTES_PREVIEW_COUNT;
   refs.showMoreRoutesBtn.hidden = !canShowMore;
+  if (canShowMore) {
+    refs.showMoreRoutesBtn.textContent = state.showAllRoutes ? "Показати менше" : "Показати більше";
+  }
 }
 
 function renderStats() {
@@ -352,7 +355,7 @@ refs.searchInput.addEventListener("input", (e) => {
 });
 
 refs.showMoreRoutesBtn.addEventListener("click", () => {
-  state.showAllRoutes = true;
+  state.showAllRoutes = !state.showAllRoutes;
   renderRoutes();
 });
 
