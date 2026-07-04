@@ -12,7 +12,7 @@ const CONFIG = {
 
   // Show fabricated sample data so the screen is never empty during
   // development. Set to false once routes are supplied by your backend.
-  USE_MOCK_DATA: false,
+  USE_MOCK_DATA: true,
 
   ROUTES_PREVIEW_COUNT: 3,
 };
