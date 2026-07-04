@@ -240,7 +240,10 @@ function renderRouteActions(route) {
 function renderRoutes() {
   const filtered = getFilteredRoutes();
   const isSearching = state.searchQuery.trim().length > 0;
-  const visible = isSearching || state.showAllRoutes ? filtered : filtered.slice(0, CONFIG.ROUTES_PREVIEW_COUNT);
+  
+  const visible = isSearching || state.showAllRoutes 
+    ? filtered 
+    : filtered.slice(0, CONFIG.ROUTES_PREVIEW_COUNT);
 
   refs.routesEmptyState.hidden = filtered.length !== 0;
   refs.routesList.hidden = filtered.length === 0;
@@ -265,9 +268,12 @@ function renderRoutes() {
     })
     .join("");
 
-  const canShowMore = !isSearching && !state.showAllRoutes && filtered.length > CONFIG.ROUTES_PREVIEW_COUNT;
-  refs.showMoreRoutesBtn.hidden = !canShowMore;
-  if (canShowMore) {
+  const hasManyRoutes = filtered.length > CONFIG.ROUTES_PREVIEW_COUNT;
+
+  if (isSearching || !hasManyRoutes) {
+    refs.showMoreRoutesBtn.hidden = true;
+  } else {
+    refs.showMoreRoutesBtn.hidden = false;
     refs.showMoreRoutesBtn.textContent = state.showAllRoutes ? "Показати менше" : "Показати більше";
   }
 }
