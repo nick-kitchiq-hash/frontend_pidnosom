@@ -578,6 +578,7 @@ async function sendCommand(action, payload = {}) {
         headers: {
           "Content-Type": "application/json",
           "X-Telegram-Init-Data": (tg && tg.initData) || "",
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(message),
       });
