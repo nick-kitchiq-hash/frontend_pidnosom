@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Профіль</title>
+
+<!-- Official Telegram Mini Apps SDK — must load before app.js -->
+<script src="https://telegram.org/js/telegram-web-app.js?62"></script>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ===================== PROFILE HEADER ===================== -->
+  <section class="profile-header">
+    <div class="avatar-wrap">
+      <img class="avatar" id="avatarImg" src="" alt="" hidden />
+      <div class="avatar avatar-fallback" id="avatarFallback">?</div>
+    </div>
+
+    <div class="name-row">
+      <h1 class="username" id="usernameText">Ім'я користувача</h1>
+      <button class="icon-btn" id="editNameBtn" type="button" aria-label="Редагувати ім'я">
+        <span class="icon icon-edit"></span>
+      </button>
+    </div>
+
+    <p class="profile-subtitle">Вітаю у персональному профілі</p>
+
+    <div class="badge" id="statusBadge">
+      <span id="statusEmoji">🔰</span>
+      <span id="statusLabel">Новачок</span>
+    </div>
+  </section>
+
+  <!-- ===================== SEARCH ===================== -->
+  <div class="search-wrap">
+    <span class="icon icon-find search-icon"></span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Пошук" autocomplete="off" />
+  </div>
+
+  <!-- ===================== ROUTES (rendered dynamically by app.js) ===================== -->
+  <section class="section">
+    <h2 class="section-title">Мої маршрути</h2>
+    <div class="card-list" id="routesList"><!-- route items injected here --></div>
+    <button class="link-btn" id="showMoreRoutesBtn" type="button" hidden>Показати більше</button>
+    <p class="empty-state" id="routesEmptyState" hidden>Нічого не знайдено</p>
+  </section>
+
+  <!-- ===================== STATISTICS ===================== -->
+  <section class="section">
+    <h2 class="section-title">Моя статистика</h2>
+
+    <!-- group 1: simple counters -->
+    <div class="card-list">
+      <div class="stat-row" id="statCompletedRow" data-stat="completed">
+        <button class="stat-row-head" type="button">
+          <span class="icon icon-complete"></span>
+          <span class="stat-row-label">Пройдено маршрутів</span>
+          <span class="stat-row-count" id="statCompletedCount">0</span>
+          <span class="icon icon-arrow chevron"></span>
+        </button>
+        <div class="stat-panel" id="statCompletedPanel">
+          <div class="stat-panel-inner" id="statCompletedList"></div>
+        </div>
+      </div>
+
+      <div class="stat-row" id="statCitiesRow" data-stat="cities">
+        <button class="stat-row-head" type="button">
+          <span class="icon icon-map"></span>
+          <span class="stat-row-label">Відвідано міст</span>
+          <span class="stat-row-count" id="statCitiesCount">0</span>
+          <span class="icon icon-arrow chevron"></span>
+        </button>
+        <div class="stat-panel" id="statCitiesPanel">
+          <div class="stat-panel-inner" id="statCitiesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- group 2: history chart, kept in its own card since it expands tall -->
+    <div class="card-list" style="margin-top: 10px;">
+      <div class="stat-row" id="statHistoryRow" data-stat="history">
+        <button class="stat-row-head" type="button">
+          <span class="icon icon-stats"></span>
+          <span class="stat-row-label">Історія моїх прогулянок</span>
+          <span class="icon icon-arrow chevron"></span>
+        </button>
+        <div class="stat-panel" id="statHistoryPanel">
+          <div class="chart-wrap">
+            <svg id="historyChart" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="bottom-spacer"></div>
+</div>
+
+<!-- ===================== OVERLAY: sheets & screens ===================== -->
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-backdrop" id="overlayBackdrop"></div>
+
+  <!-- Edit name -->
+  <div class="sheet" id="sheetEditName" hidden>
+    <div class="sheet-handle"></div>
+    <h3 class="sheet-title">Ім'я в додатку</h3>
+    <p class="sheet-desc">Це ім'я буде видно у вашому профілі та маршрутах.</p>
+    <input class="text-input" id="editNameInput" type="text" maxlength="40" placeholder="Введіть ім'я" />
+  </div>
+
+  <!-- Donate -->
+  <div class="sheet" id="sheetDonate" hidden>
+    <div class="sheet-handle"></div>
+    <h3 class="sheet-title">Подарувати маршрут</h3>
+    <p class="sheet-desc" id="donateRouteLabel">Маршрут</p>
+    <input class="text-input" id="donateAddressInput" type="text" placeholder="Введіть юзернейм користувача (наприклад @YOUR_FRIEND)" autocomplete="off" />
+  </div>
+
+  <!-- Return / irreversible action — modeled on the BotFather "Transfer Ownership" screen -->
+  <div class="confirm-screen" id="screenReturn" hidden>
+    <button class="back-arrow" id="returnBackBtn" type="button" aria-label="Назад">
+      <span class="icon icon-arrow" style="transform: rotate(180deg); width:14px; height:14px;"></span>
+    </button>
+
+    <div class="confirm-icon"><span class="icon icon-undo" style="width:30px;height:30px;"></span></div>
+    <h3 class="confirm-title">Повернути маршрут</h3>
+    <p class="confirm-desc" id="returnRouteLabel">Маршрут</p>
+    <p class="confirm-warning">Цю дію неможливо скасувати — прогрес і доступ до маршруту будуть втрачені назавжди.</p>
+
+    <label class="confirm-checkbox">
+      <input type="checkbox" id="returnConfirmCheckbox" />
+      <span>Я розумію, що цю дію не можна скасувати</span>
+    </label>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
