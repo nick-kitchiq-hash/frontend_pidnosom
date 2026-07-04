@@ -312,32 +312,44 @@ function renderHistoryChart() {
   const data = getMonthlyHistory();
   const svg = refs.historyChart;
   const width = 320, height = 150;
-  const paddingBottom = 26, paddingTop = 24;
+
+  const paddingBottom = 26, paddingTop = 20, paddingLeft = 32, paddingRight = 10;
   const chartH = height - paddingBottom - paddingTop;
-  const maxCount = Math.max(1, ...data.map((d) => d.count));
+  const chartW = width - paddingLeft - paddingRight;
 
   if (data.length === 0) {
     svg.innerHTML = `<text x="${width / 2}" y="${height / 2}" text-anchor="middle" class="chart-label">Ще немає даних</text>`;
     return;
   }
 
-  const barGap = 14;
-  const barWidth = Math.min(34, (width - barGap * (data.length + 1)) / data.length);
+  const maxCount = Math.max(1, ...data.map((d) => d.count));
+
+  let gridLines = "";
+  const yTicks = 3; 
+  for (let i = 0; i <= yTicks; i++) {
+    const val = Math.round(maxCount * (i / yTicks));
+    const y = paddingTop + chartH - (val / maxCount) * chartH;
+    
+    gridLines += `<line x1="${paddingLeft}" y1="${y}" x2="${width - paddingRight}" y2="${y}" stroke="var(--separator)" stroke-width="1"></line>`;
+    gridLines += `<text x="${paddingLeft - 8}" y="${y + 4}" text-anchor="end" class="chart-label" style="fill: var(--hint); font-size: 10px;">${val}</text>`;
+  }
+
+  const barGap = 12;
+  const barWidth = Math.min(34, (chartW - barGap * (data.length + 1)) / data.length);
   const totalBarsWidth = data.length * barWidth + (data.length - 1) * barGap;
-  const startX = (width - totalBarsWidth) / 2;
+  const startX = paddingLeft + (chartW - totalBarsWidth) / 2;
 
   let bars = "";
   data.forEach((d, i) => {
     const x = startX + i * (barWidth + barGap);
     const barH = Math.max(4, (d.count / maxCount) * chartH);
     const y = paddingTop + (chartH - barH);
-    bars += `
-      <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" class="chart-value">${d.count}м</text>
-      <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="6" class="chart-bar"></rect>
-      <text x="${x + barWidth / 2}" y="${height - 6}" text-anchor="middle" class="chart-label">${escapeHtml(d.label)}</text>`;
+    
+    bars += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="4" class="chart-bar"></rect>`;
+    bars += `<text x="${x + barWidth / 2}" y="${height - 6}" text-anchor="middle" class="chart-label">${escapeHtml(d.label)}</text>`;
   });
 
-  svg.innerHTML = bars;
+  svg.innerHTML = gridLines + bars;
 }
 
 function renderAll() {
