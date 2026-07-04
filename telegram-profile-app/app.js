@@ -84,7 +84,7 @@ function getMockData() {
 async function loadProfileData() {
   if (!CONFIG.USE_MOCK_DATA && CONFIG.BACKEND_URL) {
     const res = await fetch(`${CONFIG.BACKEND_URL}/api/webapp/profile`, {
-      headers: { "X-Telegram-Init-Data": (tg && tg.initData) || "" },
+      headers: { "X-Telegram-Init-Data": (tg && tg.initData) || "", "ngrok-skip-browser-warning": "true"},
     });
     if (!res.ok) throw new Error("Failed to load profile");
     return res.json();
